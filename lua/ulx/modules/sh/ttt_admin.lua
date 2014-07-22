@@ -643,12 +643,10 @@ function ulx.identify( calling_ply, target_ply, unidentify )
             CORPSE.SetFound( body, true )
             target_ply:SetNWBool("body_found", true)
             
-            local name = calling_ply:Nick() 
-            
             if target_ply:GetRole() == ROLE_TRAITOR then
                 -- update innocent's list of traitors
                 SendConfirmedTraitors(GetInnocentFilter(false))
-                SCORE:HandleBodyFound(name, body )
+                SCORE:HandleBodyFound( calling_ply, target_ply )
             end
             
         else

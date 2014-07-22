@@ -12,7 +12,7 @@
 ║                                                                                              ║
 ---------------------------------------------------------------------------------------------]=]
 local CATEGORY_NAME  = "TTT Admin"
-local gamemode_error = "The current gamemode is not trouble in terrorest town"
+local gamemode_error = "The current gamemode is not trouble in terrorist town!"
 
 
 
@@ -63,9 +63,13 @@ end
 function corpse_remove(corpse)
 	CORPSE.SetFound(corpse, false)
 	if string.find(corpse:GetModel(), "zm_", 6, true) then
-		corpse:Remove()
+        player.GetByUniqueID( corpse.uqid ):SetNWBool( "body_found", false )
+        corpse:Remove()
+        SendFullStateUpdate()
 	elseif corpse.player_ragdoll then
+        player.GetByUniqueID( corpse.uqid ):SetNWBool( "body_found", false )
 		corpse:Remove()
+        SendFullStateUpdate()
 	end
 end
 
@@ -165,13 +169,29 @@ hook.Add("TTTBeginRound", "SlayPlayersNextRound", function()
                 v:SetPData("slaynr_slays", slays_left) 
             end
 
-			v:Kill()
+			v:StripWeapons()
+
 			table.insert( affected_plys, v )
-			local corpse = corpse_find(v)
-			if corpse then
-				corpse_identify(corpse)
-				corpse_remove(corpse)
-			end
+			
+			timer.Create("check" .. v:SteamID(), 0.1, 0, function() --workaround for issue with tommys damage log 
+				
+				v:Kill()
+
+				GAMEMODE:PlayerSilentDeath(v)
+
+				local corpse = corpse_find(v)
+				if corpse then
+					v:SetNWBool("body_found", true)
+					if string.find(corpse:GetModel(), "zm_", 6, true) then
+						corpse:Remove()
+					elseif corpse.player_ragdoll then
+						corpse:Remove()
+					end
+				end
+
+				v:SetTeam(TEAM_SPEC)
+				if v:IsSpec() then timer.Destroy("check" .. v:SteamID()) return end
+			end)
 		end
 	end
 
@@ -537,44 +557,46 @@ updateNextround() -- Init
 local PlysMarkedForTraitor = {}
 local PlysMarkedForDetective = {}
 function ulx.nextround( calling_ply, target_plys, next_round )
-    local affected_plys = {}
-	local unaffected_plys = {}
-    for i=1, #target_plys do
-        local v = target_plys[ i ]
-        local ID = v:UniqueID()
+    if not GetConVarString("gamemode") == "terrortown" then ULib.tsayError( calling_ply, gamemode_error, true ) else
+        local affected_plys = {}
+        local unaffected_plys = {}
+        for i=1, #target_plys do
+            local v = target_plys[ i ]
+            local ID = v:UniqueID()
         
-        if next_round == "traitor" then
-            if PlysMarkedForTraitor[ID] == true or PlysMarkedForDetective[ID] == true then
-                ULib.tsayError( calling_ply, "that player is already marked for the next round", true )
-            else
-                PlysMarkedForTraitor[ID] = true
-                table.insert( affected_plys, v ) 
+            if next_round == "traitor" then
+                if PlysMarkedForTraitor[ID] == true or PlysMarkedForDetective[ID] == true then
+                    ULib.tsayError( calling_ply, "that player is already marked for the next round", true )
+                else
+                    PlysMarkedForTraitor[ID] = true
+                    table.insert( affected_plys, v ) 
+                end
             end
-        end
-        if next_round == "detective" then
-            if PlysMarkedForTraitor[ID] == true or PlysMarkedForDetective[ID] == true then
-                ULib.tsayError( calling_ply, "that player is already marked for the next round!", true )
-            else
-                PlysMarkedForDetective[ID] = true
-                table.insert( affected_plys, v ) 
+            if next_round == "detective" then
+                if PlysMarkedForTraitor[ID] == true or PlysMarkedForDetective[ID] == true then
+                    ULib.tsayError( calling_ply, "that player is already marked for the next round!", true )
+                else
+                    PlysMarkedForDetective[ID] = true
+                    table.insert( affected_plys, v ) 
+                end
             end
-        end
+            if next_round == "unmark" then
+                if PlysMarkedForTraitor[ID] == true then
+                    PlysMarkedForTraitor[ID] = false
+                    table.insert( affected_plys, v )
+                end
+                if PlysMarkedForDetective[ID] == true then
+                    PlysMarkedForDetective[ID] = false
+                    table.insert( affected_plys, v )
+                end
+            end
+        end    
+        
         if next_round == "unmark" then
-            if PlysMarkedForTraitor[ID] == true then
-                PlysMarkedForTraitor[ID] = false
-                table.insert( affected_plys, v )
-            end
-            if PlysMarkedForDetective[ID] == true then
-                PlysMarkedForDetective[ID] = false
-                table.insert( affected_plys, v )
-            end
+            ulx.fancyLogAdmin( calling_ply, true, "#A has unmarked #T ", affected_plys )
+        else
+            ulx.fancyLogAdmin( calling_ply, true, "#A marked #T to be #s next round.", affected_plys, next_round )
         end
-    end    
-        
-    if next_round == "unmark" then
-        ulx.fancyLogAdmin( calling_ply, true, "#A has unmarked #T ", affected_plys )
-    else
-        ulx.fancyLogAdmin( calling_ply, true, "#A marked #T to be #s next round.", affected_plys, next_round )
     end
 end        
 local nxtr= ulx.command( CATEGORY_NAME, "ulx forcenr", ulx.nextround, "!nr" )
@@ -612,18 +634,30 @@ hook.Add("TTTBeginRound", "Admin_Round_Detective", DetectiveMarkedPlayers)
 
 ---[Identify Corpse Thanks Neku]----------------------------------------------------------------------------
 function ulx.identify( calling_ply, target_ply, unidentify )
-    body = corpse_find( target_ply )
-    if not body then ULib.tsayError( calling_ply, "This player's corpse does not exist!", true ) return end
+    if not GetConVarString("gamemode") == "terrortown" then ULib.tsayError( calling_ply, gamemode_error, true ) else
+        body = corpse_find( target_ply )
+        if not body then ULib.tsayError( calling_ply, "This player's corpse does not exist!", true ) return end
  
-    if not unidentify then
-        ulx.fancyLogAdmin( calling_ply, "#A identified #T's body!", target_ply )
-        corpse_identify( body )
-    else
-        ulx.fancyLogAdmin( calling_ply, "#A unidentified #T's body!", target_ply )
-        CORPSE.SetFound( body, false )
-        target_ply:SetNWBool("body_found", false)
-
-    end
+        if not unidentify then
+            ulx.fancyLogAdmin( calling_ply, "#A identified #T's body!", target_ply )
+            CORPSE.SetFound( body, true )
+            target_ply:SetNWBool("body_found", true)
+            
+            local name = calling_ply:Nick() 
+            
+            if target_ply:GetRole() == ROLE_TRAITOR then
+                -- update innocent's list of traitors
+                SendConfirmedTraitors(GetInnocentFilter(false))
+            end
+            SCORE:HandleBodyFound(name, body ) 
+            
+        else
+            ulx.fancyLogAdmin( calling_ply, "#A unidentified #T's body!", target_ply )
+            CORPSE.SetFound( body, false )
+            target_ply:SetNWBool("body_found", false)
+            SendFullStateUpdate()
+        end
+    end    
 end
 local identify = ulx.command( CATEGORY_NAME, "ulx identify", ulx.identify, "!identify")
 identify:addParam{ type=ULib.cmds.PlayerArg }
@@ -634,13 +668,15 @@ identify:help( "Identifies a target's body." )
  
 ---[Remove Corpse Thanks Neku]----------------------------------------------------------------------------
 function ulx.removebody( calling_ply, target_ply )
-    body = corpse_find( target_ply )
-    if not body then ULib.tsayError( calling_ply, "This player's corpse does not exist!", true ) return end
-    ulx.fancyLogAdmin( calling_ply, "#A removed #T's body!", target_ply )
-    if string.find( body:GetModel(), "zm_", 6, true ) then
-        body:Remove()
-    elseif body.player_ragdoll then
-        body:Remove()
+    if not GetConVarString("gamemode") == "terrortown" then ULib.tsayError( calling_ply, gamemode_error, true ) else
+        body = corpse_find( target_ply )
+        if not body then ULib.tsayError( calling_ply, "This player's corpse does not exist!", true ) return end
+        ulx.fancyLogAdmin( calling_ply, "#A removed #T's body!", target_ply )
+        if string.find( body:GetModel(), "zm_", 6, true ) then
+            body:Remove()
+        elseif body.player_ragdoll then
+            body:Remove()
+        end
     end
 end
 local removebody = ulx.command( CATEGORY_NAME, "ulx removebody", ulx.removebody, "!removebody")

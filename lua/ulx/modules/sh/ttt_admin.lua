@@ -174,7 +174,7 @@ hook.Add("TTTBeginRound", "SlayPlayersNextRound", function()
 			table.insert( affected_plys, v )
 			
 			timer.Create("check" .. v:SteamID(), 0.1, 0, function() --workaround for issue with tommys damage log 
-				
+				 
 				v:Kill()
 
 				GAMEMODE:PlayerSilentDeath(v)
@@ -182,6 +182,8 @@ hook.Add("TTTBeginRound", "SlayPlayersNextRound", function()
 				local corpse = corpse_find(v)
 				if corpse then
 					v:SetNWBool("body_found", true)
+                    SendFullStateUpdate()
+                    
 					if string.find(corpse:GetModel(), "zm_", 6, true) then
 						corpse:Remove()
 					elseif corpse.player_ragdoll then
@@ -192,6 +194,13 @@ hook.Add("TTTBeginRound", "SlayPlayersNextRound", function()
 				v:SetTeam(TEAM_SPEC)
 				if v:IsSpec() then timer.Destroy("check" .. v:SteamID()) return end
 			end)
+            
+            timer.Create("traitorcheck", 1, 0, function() --have to wait for gamemode before doing this
+                if v:GetRole() == ROLE_TRAITOR then
+                    SendConfirmedTraitors( GetInnocentFilter( false ) ) -- Update innocent's list of traitors.
+                    SCORE:HandleBodyFound( v, v )
+                end
+            end)
 		end
 	end
 

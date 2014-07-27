@@ -195,7 +195,7 @@ hook.Add("TTTBeginRound", "SlayPlayersNextRound", function()
 				if v:IsSpec() then timer.Destroy("check" .. v:SteamID()) return end
 			end)
             
-            timer.Create("traitorcheck", 1, 0, function() --have to wait for gamemode before doing this
+            timer.Create("traitorcheck" .. v:SteamID(), 1, 0, function() --have to wait for gamemode before doing this
                 if v:GetRole() == ROLE_TRAITOR then
                     SendConfirmedTraitors( GetInnocentFilter( false ) ) -- Update innocent's list of traitors.
                     SCORE:HandleBodyFound( v, v )
@@ -412,9 +412,29 @@ function ulx.respawn( calling_ply, target_plys, should_silent )
 				ULib.tsayError( calling_ply, ulx.getExclusive( v, calling_ply ), true )
 			elseif GetRoundState() == 1 then
 	    		ULib.tsayError( calling_ply, "Waiting for players!", true )
-			elseif v:Alive() then
-				ULib.tsayError( calling_ply, v:Nick() .. " is already alive!", true )
+                
+			elseif v:Alive() and v:IsSpec() then -- players arent really dead when they are spectating, we need to handle that correctly
+                timer.Destroy("traitorcheck" .. v:SteamID())
+                v:ConCommand("ttt_spectator_mode 0") -- just incase they are in spectator mode take them out of it
+                timer.Create("respawndelay", 0.1, 0, function() --seems to be a slight delay from when you leave spec and when you can spawn this should get us around that
+                    local corpse = corpse_find(v) -- run the normal respawn code now
+                    if corpse then corpse_remove(corpse) end
+
+                    v:SpawnForRound( true )
+                    v:SetCredits( ( (v:GetRole() == ROLE_INNOCENT) and 0 ) or GetConVarNumber("ttt_credits_starting") )
+				
+                    table.insert( affected_plys, v )
+                    
+                    ulx.fancyLogAdmin( calling_ply, should_silent ,"#A respawned #T!", affected_plys )
+                    send_messages(affected_plys, "You have been respawned.")
+        
+                    if v:Alive() then timer.Destroy("respawndelay") return end
+                end)
+                
+            elseif v:Alive() then
+				ULib.tsayError( calling_ply, v:Nick() .. " is already alive!", true ) 
 			else
+                timer.Destroy("traitorcheck" .. v:SteamID())
 				local corpse = corpse_find(v)
 				if corpse then corpse_remove(corpse) end
 
@@ -454,10 +474,42 @@ function ulx.respawntp( calling_ply, target_ply, should_silent )
 		elseif ulx.getExclusive( target_ply, calling_ply ) then
 			ULib.tsayError( calling_ply, ulx.getExclusive( target_ply, calling_ply ), true )
 		elseif GetRoundState() == 1 then
-	    		ULib.tsayError( calling_ply, "Waiting for players!", true )
+            ULib.tsayError( calling_ply, "Waiting for players!", true )
+            
+        elseif target_ply:Alive() and target_ply:IsSpec() then
+            timer.Destroy("traitorcheck" .. target_ply:SteamID())
+            target_ply:ConCommand("ttt_spectator_mode 0")
+            timer.Create("respawntpdelay", 0.1, 0, function() --have to wait for gamemode before doing this
+                local t  = {}
+                t.start  = calling_ply:GetPos() + Vector( 0, 0, 32 ) -- Move them up a bit so they can travel across the ground
+                t.endpos = calling_ply:GetPos() + calling_ply:EyeAngles():Forward() * 16384
+                t.filter = target_ply
+                if target_ply ~= calling_ply then
+                    t.filter = { target_ply, calling_ply }
+                end
+                local tr = util.TraceEntity( t, target_ply )
+		
+                local pos = tr.HitPos
+
+                local corpse = corpse_find(target_ply)
+                if corpse then corpse_remove(corpse) end
+
+                target_ply:SpawnForRound( true )
+                target_ply:SetCredits( ((target_ply:GetRole() == ROLE_INNOCENT) and 0) or GetConVarNumber("ttt_credits_starting") )
+		
+                target_ply:SetPos( pos )
+                table.insert( affected_ply, target_ply )
+                
+                ulx.fancyLogAdmin( calling_ply, should_silent ,"#A respawned and teleported #T!", affected_ply )
+                send_messages(target_ply, "You have been respawned and teleported.")
+                
+                if target_ply:Alive() then timer.Destroy("respawntpdelay") return end
+            end) 
+            
 		elseif target_ply:Alive() then
 			ULib.tsayError( calling_ply, target_ply:Nick() .. " is already alive!", true )
 		else
+            timer.Destroy("traitorcheck" .. target_ply:SteamID())
 			local t  = {}
 			t.start  = calling_ply:GetPos() + Vector( 0, 0, 32 ) -- Move them up a bit so they can travel across the ground
 			t.endpos = calling_ply:GetPos() + calling_ply:EyeAngles():Forward() * 16384
@@ -535,7 +587,7 @@ function ulx.tttspec( calling_ply, target_plys, should_unspec )
 			end
 	    end
 	    if should_unspec then
-	   		ulx.fancyLogAdmin( calling_ply, "#A has forced #T to join the world of the living.", target_plys )
+	   		ulx.fancyLogAdmin( calling_ply, "#A has forced #T to join the world of the living next round.", target_plys )
 	   	else
 	    	ulx.fancyLogAdmin( calling_ply, "#A has forced #T to spectate.", target_plys )
 	   	end

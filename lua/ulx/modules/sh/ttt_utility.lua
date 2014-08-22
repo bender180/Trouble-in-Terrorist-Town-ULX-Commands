@@ -42,7 +42,7 @@ function ulx.preventwin( calling_ply, should_prevwin )
 			ulx.fancyLogAdmin( calling_ply, "#A allowed the round to end as normal." )
 		else
 			ULib.consoleCommand( "ttt_debug_preventwin 1" .. "\n" )
-			ulx.fancyLogAdmin( calling_ply, "#A prevented the round from ending untill timeout." )
+			ulx.fancyLogAdmin( calling_ply, "#A prevented the round from ending until timeout." )
 		end
 	end
 end

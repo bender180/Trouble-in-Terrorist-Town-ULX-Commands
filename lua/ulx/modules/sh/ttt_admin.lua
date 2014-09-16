@@ -811,3 +811,15 @@ function ImpairPlayers()
 
 end
 hook.Add( "TTTBeginRound", "ImpairPlayers", ImpairPlayers )
+
+---[Round Restart]-------------------------------------------------------------------------
+function ulx.roundrestart( calling_ply )
+	if not GetConVarString("gamemode") == "terrortown" then ULib.tsayError( calling_ply, gamemode_error, true ) else
+		ULib.consoleCommand( "ttt_roundrestart" .. "\n" )
+		ulx.fancyLogAdmin( calling_ply, "#A has restarted the round." )
+	end
+end
+local restartround = ulx.command( CATEGORY_NAME, "ulx roundrestart", ulx.roundrestart )
+restartround:defaultAccess( ULib.ACCESS_SUPERADMIN )
+restartround:help( "Restarts the round." )
+---[End]----------------------------------------------------------------------------------------

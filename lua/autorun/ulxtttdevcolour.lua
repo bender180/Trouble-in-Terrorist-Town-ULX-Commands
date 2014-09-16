@@ -1,3 +1,5 @@
+--experiment to see what happens if i colour my name (will be removed if it causes issues)
+
 if SERVER then
     AddCSLuaFile("ulxtttdevcolour.lua")
     else

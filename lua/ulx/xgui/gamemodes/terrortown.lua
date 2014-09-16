@@ -12,7 +12,7 @@ xlib.makelabel{ x=5, y=325, w=160, wordwrap=true, label="Not all settings echo t
 
 
 terrortown_settings.panel = xlib.makepanel{ x=160, y=25, w=420, h=318, parent=terrortown_settings }
-terrortown_settings.catList = xlib.makelistview{ x=5, y=25, w=150, h=160, parent=terrortown_settings }
+terrortown_settings.catList = xlib.makelistview{ x=5, y=25, w=150, h=157, parent=terrortown_settings }
 terrortown_settings.catList:AddColumn( "Terrorist Town Settings" )
 terrortown_settings.catList.Columns[1].DoClick = function() end
 
@@ -71,13 +71,13 @@ local rspnl = xlib.makelistlayout{ w=415, h=318, parent=xgui.null }
 
 --Preparation and post-round
 local rspapclp = vgui.Create( "DCollapsibleCategory", rspnl ) 
-rspapclp:SetSize( 405, 70 )
+rspapclp:SetSize( 390, 70 )
 rspapclp:SetExpanded( 1 )
 rspapclp:SetLabel( "Preparation and post-round" )
 
 local rspaplst = vgui.Create( "DPanelList", rspapclp )
 rspaplst:SetPos( 5, 25 )
-rspaplst:SetSize( 405, 70 )
+rspaplst:SetSize( 390, 70 )
 rspaplst:SetSpacing( 5 )
    
 local prept = xlib.makeslider{ label="ttt_preptime_seconds (def. 30)", min=1, max=120, repconvar="rep_ttt_preptime_seconds", parent=rspaplst }
@@ -91,13 +91,13 @@ rspaplst:AddItem( pstt )
 
 --Round length
 local rsrlclp = vgui.Create( "DCollapsibleCategory", rspnl ) 
-rsrlclp:SetSize( 405, 90)
+rsrlclp:SetSize( 390, 90)
 rsrlclp:SetExpanded( 0 )
 rsrlclp:SetLabel( "Round length" )
 
 local rsrllst = vgui.Create( "DPanelList", rsrlclp )
 rsrllst:SetPos( 5, 25 )
-rsrllst:SetSize( 405, 90 )
+rsrllst:SetSize( 390, 90 )
 rsrllst:SetSpacing( 5 )
 
 local hstmd = xlib.makecheckbox{label="ttt_haste", repconvar="rep_ttt_haste", parent=rsrllst }
@@ -114,13 +114,13 @@ rsrllst:AddItem( rtm )
 
 --Map switching and voting
 local msavclp = vgui.Create( "DCollapsibleCategory", rspnl ) 
-msavclp:SetSize( 405, 95 )
+msavclp:SetSize( 390, 95 )
 msavclp:SetExpanded( 0 )
 msavclp:SetLabel( "Map switching and voting" )
 
 local msavlst = vgui.Create( "DPanelList", msavclp )
 msavlst:SetPos( 5, 25 )
-msavlst:SetSize( 405, 95 )
+msavlst:SetSize( 390, 95 )
 msavlst:SetSpacing( 5 )
 
 local rndl = xlib.makeslider{label="ttt_round_limit (def. 6)", min=1, max=100, repconvar="rep_ttt_round_limit", parent=msavlst}
@@ -143,13 +143,13 @@ local gppnl = xlib.makelistlayout{ w=415, h=318, parent=xgui.null }
 
 --Traitor and Detective counts
 local gptdcclp = vgui.Create( "DCollapsibleCategory", gppnl ) 
-gptdcclp:SetSize( 405, 100 )
+gptdcclp:SetSize( 390, 100 )
 gptdcclp:SetExpanded( 1 )
 gptdcclp:SetLabel( "Traitor and Detective counts" )
 
 local gptdlst = vgui.Create( "DPanelList", gptdcclp )
 gptdlst:SetPos( 5, 25 )
-gptdlst:SetSize( 405, 100 )
+gptdlst:SetSize( 390, 100 )
 gptdlst:SetSpacing( 5 )
    
 local tpercet = xlib.makeslider{ label="ttt_traitor_pct (def. 0.25)", min=0.01, max=2, decimal=2, repconvar="rep_ttt_traitor_pct", parent=gptdlst}
@@ -172,13 +172,13 @@ gptdlst:AddItem( dkm )
 
 --DNA
 local gpdnaclp = vgui.Create( "DCollapsibleCategory", gppnl ) 
-gpdnaclp:SetSize( 405, 45 )
+gpdnaclp:SetSize( 390, 45 )
 gpdnaclp:SetExpanded( 0 )
 gpdnaclp:SetLabel( "DNA" )
 
 local gpdnalst = vgui.Create( "DPanelList", gpdnaclp )
 gpdnalst:SetPos( 5, 25 )
-gpdnalst:SetSize( 405, 45 )
+gpdnalst:SetSize( 390, 45 )
 gpdnalst:SetSpacing( 5 )
 
 local dnarange = xlib.makeslider{ label="ttt_killer_dna_range (def. 550)", min=100, max=1000, repconvar="rep_ttt_killer_dna_range", parent=gpdnalst }
@@ -189,13 +189,13 @@ gpdnalst:AddItem( dnakbt )
 
 --Voicechat battery
 local gpvcbclp = vgui.Create( "DCollapsibleCategory", gppnl ) 
-gpvcbclp:SetSize( 405, 65)
+gpvcbclp:SetSize( 390, 65)
 gpvcbclp:SetExpanded( 0 )
 gpvcbclp:SetLabel( "Voicechat battery" )
 
 local gpvcblst = vgui.Create( "DPanelList", gpvcbclp )
 gpvcblst:SetPos( 5, 25 )
-gpvcblst:SetSize( 405, 65 )
+gpvcblst:SetSize( 390, 65 )
 gpvcblst:SetSpacing( 5 )
 
 local gpevd = xlib.makecheckbox{label="ttt_voice_drain (def. 0)", repconvar="rep_ttt_voice_drain", parent=gpvcblst }
@@ -212,13 +212,13 @@ gpvcblst:AddItem( gpvdr )
 
 --Other gameplay settings
 local gpogsclp = vgui.Create( "DCollapsibleCategory", gppnl ) 
-gpogsclp:SetSize( 405, 200)
+gpogsclp:SetSize( 390, 200)
 gpogsclp:SetExpanded( 0 )
 gpogsclp:SetLabel( "Other gameplay settings" )
 
 local gpogslst = vgui.Create( "DPanelList", gpogsclp )
 gpogslst:SetPos( 5, 25 )
-gpogslst:SetSize( 405, 200 )
+gpogslst:SetSize( 390, 200 )
 gpogslst:SetSpacing( 5 )
 
 local gpminply = xlib.makeslider{label="ttt_minimum_players (def. 2)", min=1, max=10, repconvar="rep_ttt_minimum_players", parent=gpogslst }

@@ -1,7 +1,7 @@
 "AddonInfo"
 {
 	"name"				"TTT commands"
-	"version"			"1.2"
+	"version"			"3"
 	"up_date"			"00/00/00"
 	"author_name"			"Bender180 and Skillz"
 	"author_email"			"theterrortownteam@gmail.com"

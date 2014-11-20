@@ -582,6 +582,9 @@ function ulx.tttspec( calling_ply, target_plys, should_unspec )
 			if should_unspec then
 			    v:ConCommand("ttt_spectator_mode 0")
 			else
+			    v:Kill()
+			    v:SetForceSpec(true)
+			    v:SetTeam(TEAM_SPEC)
 			    v:ConCommand("ttt_spectator_mode 1")
 			    v:ConCommand("ttt_cl_idlepopup")
 			end

@@ -366,7 +366,7 @@ ecdclst:SetPos( 5, 25 )
 ecdclst:SetSize( 390, 90 )
 ecdclst:SetSpacing( 5 )
 
-local ecdccs = xlib.makeslider{ label="ttt_det_credits_starting (def. 1)", min=0, max=10, repconvar="rep_ttt_credits_starting", parent=ecdclst }
+local ecdccs = xlib.makeslider{ label="ttt_det_credits_starting (def. 1)", min=0, max=10, repconvar="rep_ttt_det_credits_starting", parent=ecdclst }
 ecdclst:AddItem( ecdccs )
 
 local ecdctk = xlib.makeslider{ label="ttt_det_credits_traitorkill (def. 0)", min=0, max=10, repconvar="rep_ttt_det_credits_traitorkill", parent=ecdclst }
